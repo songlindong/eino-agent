@@ -1,0 +1,4 @@
+- loader 读取文档内容
+- Embedding 文本向量化
+- Transformer 文档处理（分块）
+- Indexer 存储
