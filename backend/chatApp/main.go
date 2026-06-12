@@ -3,7 +3,7 @@ package main
 import (
 	"bufio"
 	"context"
-	"eino-agent/backend/chatApp/agent/resume"
+	"eino-agent/backend/chatApp/agent/rag"
 	"fmt"
 	"log"
 	"os"
@@ -27,10 +27,15 @@ func main() {
 
 	// test.ReportSteam(steam)
 
-	agent, err := resume.NewResumeAgent()
+	agent, toolset, err := rag.NewRAGAgent()
 	if err != nil {
 		log.Fatalf("智能体创建失败：%v", err)
 	}
+	defer func() {
+		if err := toolset.Close(); err != nil {
+			log.Printf("关闭 MCP 客户端失败：%v", err)
+		}
+	}()
 
 	AgentTest(agent)
 }
@@ -79,7 +84,10 @@ func AgentTest(agent adk.Agent) {
 		fmt.Println()
 	}
 
-	autoInput := "D:\\go-workspace\\eino-agent\backend\\chatApp\\GoTest.pdf"
+	autoInput := strings.TrimSpace(os.Getenv("RAG_TEST_QUERY"))
+	if autoInput == "" {
+		autoInput = "请先调用 rag.retrieve 检索知识库内容，再根据检索结果给出总结。"
+	}
 
 	if autoInput != "" {
 		fmt.Printf("自动输入: %s\n", autoInput)
